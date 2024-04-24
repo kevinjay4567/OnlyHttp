@@ -9,11 +9,16 @@ import javafx.stage.Stage;
 import java.io.IOException;
 
 public class HelloApplication extends Application {
+    @Override
+    public void stop() throws Exception {
+        super.stop();
+        System.out.println("Bye bye");
+    }
 
     private static Scene scene;
 
     @Override
-    public void start(Stage stage) throws IOException {
+    public void start(@SuppressWarnings("exports") Stage stage) throws IOException {
         scene = new Scene(loadFXML("hello-view"));
         stage.setScene(scene);
         stage.setTitle("First Application");

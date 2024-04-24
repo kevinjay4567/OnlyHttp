@@ -3,8 +3,6 @@ package org.kevin.desktopappfx;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import kong.unirest.core.JsonNode;
-import kong.unirest.core.Unirest;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -29,13 +27,16 @@ public class HelloController implements Initializable {
     @FXML
     private Label descriptionText;
 
+    @FXML
+    private TreeView<String> requestTreeView;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
         methodComboBox.getItems().addAll("GET", "POST", "PUT", "DELETE");
         methodComboBox.setValue("GET");
-
-        statusText.setText("Status: ");
+        TreeItem<String> rootItem = new TreeItem<>("Saved Requests");
+        requestTreeView.setRoot(rootItem);
     }
 
     @FXML
@@ -43,28 +44,29 @@ public class HelloController implements Initializable {
         statusText.setText("Status: ");
         if (!urlInput.getText().isEmpty()) {
 
+            Request request = new Request();
+
             switch (methodComboBox.getValue()) {
                 case "GET":
-                    responseText.setText(getRequest().toPrettyString());
+                    responseText.setText(request.get(urlInput.getText()).get("body"));
+                    statusText.setText(statusText.getText() + " " + request.get(urlInput.getText()).get("status"));
                     break;
+
                 case "POST":
-                    responseText.setText(postRequest());
+                    responseText.setText(request.post(urlInput.getText(), requestInput.getText()).get("body"));
+                    statusText.setText(statusText.getText() + " " + request.post(urlInput.getText(),
+                            requestInput.getText()).get("status"));
+                    break;
             }
-
-            statusText.setText(statusText.getText() + "200 OK");
         }
     }
 
-    private JsonNode getRequest() {
-        return Unirest.get(urlInput.getText()).asJson().getBody();
-    }
+    @FXML
+    protected void onSaveButtonClick() {
+        if (!urlInput.getText().isEmpty()) {
 
-    private String postRequest() {
-        if (!requestInput.getText().isEmpty()) {
-            return Unirest.post(urlInput.getText()).header("Content-Type", "application/json")
-                    .body(requestInput.getText()).asJson().getBody().toPrettyString();
+            requestTreeView.getRoot().getChildren()
+                    .add(new TreeItem<>("[ " + methodComboBox.getValue() + " ] " + urlInput.getText()));
         }
-
-        return "Se requiere body...";
     }
 }
